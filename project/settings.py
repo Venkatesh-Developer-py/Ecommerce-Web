@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import pymysql
+pymysql.install_as_MySQLdb()
 
 from pathlib import Path
 import os
@@ -26,7 +28,7 @@ SECRET_KEY = 'django-insecure-%o5=mmtc4hxo)cs($a8zrnvb1*+169zar3u#aavf6!rvn=-g&+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -44,7 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,7 +54,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'project.urls'
 
 TEMPLATES = [
@@ -78,8 +79,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get("MYSQLDATABASE"),
+        'USER': os.environ.get("MYSQLUSER"),
+        'PASSWORD': os.environ.get("MYSQLPASSWORD"),
+        'HOST': os.environ.get("MYSQLHOST"),
+        'PORT': os.environ.get("MYSQLPORT"),
     }
 }
 
