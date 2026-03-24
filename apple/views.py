@@ -34,7 +34,7 @@ def get_customer(request):
 def hello(request):
     ip_address = get_client_ip(request)
 
-    # 🔥 AUTO LOGIN ONLY IF NOT FORCED LOGOUT
+    
     if not request.session.get('force_login'):
         customer = Customer.objects.filter(ip_address=ip_address).first()
 
@@ -46,23 +46,23 @@ def hello(request):
             )
             return redirect('products')
 
-    # 🔴 CLEAR FORCE LOGIN FLAG
+   
     request.session.pop('force_login', None)
 
-    # ❌ SHOW LOGIN PAGE
+    
     if request.method == "GET":
         return render(request, "index.html", {
             "captcha": generate_captcha()
         })
 
-    # CAPTCHA CHECK
+    
     if request.POST.get("captcha") != request.POST.get("real_captcha"):
         return render(request, "index.html", {
             "captcha": generate_captcha(),
             "error": "Captcha incorrect"
         })
 
-    # CREATE NEW CUSTOMER
+    
     customer = Customer.objects.create(
         name=request.POST.get("name"),
         ip_address=ip_address
@@ -120,16 +120,16 @@ def add_to_cart(request, product_id):
     item.quantity = item.quantity + qty if not created else qty
     item.save()
 
-    # ✅ CALCULATE CART COUNT (IMPORTANT)
+    
     cart_count = cart.items.count()
 
-    # ✅ IF AJAX → RETURN JSON
+    
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "cart_count": cart_count
         })
 
-    # 🔴 NORMAL FLOW (fallback)
+    
     return redirect('products')
 
 
@@ -172,7 +172,7 @@ def customer_details(request):
         customer.save()
 
         request.session['details_filled'] = True
-        return redirect('checkout')   # ✅ ONLY CHANGE
+        return redirect('checkout')   
 
 
 
@@ -243,7 +243,7 @@ def checkout(request):
     if not request.session.get('details_filled'):
         return redirect('customer_details')
 
-    # 🔥 BUY NOW FLOW
+    
     if request.session.get('buy_now'):
         data = request.session['buy_now']
         product = get_object_or_404(Product, id=data['product_id'])
@@ -261,7 +261,7 @@ def checkout(request):
             'is_buy_now': True
         })
 
-    # 🛒 CART FLOW
+  
     cart = Cart.objects.filter(customer=customer).first()
     if not cart or not cart.items.exists():
         return redirect('products')
@@ -288,14 +288,12 @@ def place_order(request):
     if not customer:
         return JsonResponse({"error": "Login required"}, status=401)
 
-    # 🔒 DELIVERY SNAPSHOT (THIS IS THE FIX)
     delivery_name = request.POST.get("delivery_name")
     delivery_phone = request.POST.get("delivery_phone")
     delivery_address = request.POST.get("delivery_address")
     delivery_city = request.POST.get("delivery_city")
     delivery_pincode = request.POST.get("delivery_pincode")
 
-    # 🔥 BUY NOW FLOW
     if request.session.get("buy_now"):
         data = request.session.get("buy_now")
         product = get_object_or_404(Product, id=data["product_id"])
@@ -325,7 +323,7 @@ def place_order(request):
         del request.session["buy_now"]
         return JsonResponse({"success": True})
 
-    # 🛒 CART FLOW
+   
     cart = Cart.objects.filter(customer=customer).first()
     if not cart or not cart.items.exists():
         return JsonResponse({"error": "Cart empty"}, status=400)
@@ -388,7 +386,7 @@ def account(request):
         name = request.POST.get('name')
 
         request.session['display_name'] = name
-        customer.name = name          # ✅ NAME DB SAVE
+        customer.name = name          
         customer.phone = request.POST.get('phone')
         customer.city = request.POST.get('city')
         customer.pincode = request.POST.get('pincode')
@@ -396,7 +394,7 @@ def account(request):
 
         return redirect('nav_address')
 
-    # ✅ THIS LINE WAS MISSING
+    
     return render(request, 'profile.html', {
         'customer': customer
     })
@@ -456,17 +454,16 @@ def edit_email(request):
         return redirect('hello')
 
     if request.method == "POST":
-        email = request.POST.get('email')  # ✅ CORRECT KEY
+        email = request.POST.get('email') 
 
         if not email:
             messages.error(request, "Email cannot be empty")
             return redirect('edit_email')
 
-        # ✅ SAVE TO DB
+       
         customer.email = email
         customer.save()
 
-        # ✅ SAVE TO SESSION (optional)
         request.session['display_email'] = email
 
         return redirect('profile')
@@ -510,7 +507,6 @@ def edit_address(request):
         return redirect('hello')
 
     if request.method == "POST":
-        # ❌ DO NOT TOUCH NAME / PHONE
         customer.address = request.POST.get('address')
         customer.city = request.POST.get('city')
         customer.pincode = request.POST.get('pincode')
@@ -531,7 +527,6 @@ def remove_address(request):
     if not customer:
         return redirect('hello')
 
-    # Clear address details
     customer.address = ""
     customer.city = ""
     customer.pincode = ""
